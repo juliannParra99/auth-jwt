@@ -137,6 +137,3 @@ namespace Drivers.Api.Controllers
 
     }
 }
-
-//the last thing i did 5130; i must to fix the port of the app cause doesnt allow me to use the http port
-//error Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3] Failed to determine the https port for redirect.
