@@ -10,7 +10,7 @@ namespace Drivers.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "appUser")]
     public class WeatherForecastController : ControllerBase
     {
 
