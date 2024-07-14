@@ -45,7 +45,7 @@ builder.Services.AddSwaggerGen(setup =>
     }
 );
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.SignIn.RequireConfirmedAccount = false)//IdentityBuilder
     .AddEntityFrameworkStores<ApiDbContext>();
 
