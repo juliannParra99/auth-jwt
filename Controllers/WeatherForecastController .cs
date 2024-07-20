@@ -13,25 +13,41 @@ namespace Drivers.Api.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "appUser")]
     public class WeatherForecastController : ControllerBase
     {
+        private static readonly List<WeatherForecast> Forecasts = new List<WeatherForecast>
+        {
+            new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(1)), 28, "Warm"),
+            new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(2)), 22, "Sweltering"),
+            new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(3)), 1, "Freezing"),
+            new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(4)), 48, "Cool"),
+            new WeatherForecast(DateOnly.FromDateTime(DateTime.Now.AddDays(5)), 49, "Freezing")
+        };
 
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
+
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    Summaries[Random.Shared.Next(Summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
+            return Forecasts;
         }
+
+        //to post something we need to have the claim WeatherDataAdmins (just the user with : WeatherAdmins value claim)
+        [Authorize(Policy = "WeatherDataAdmins")]
+        [HttpPost]
+        public IActionResult Post([FromBody] WeatherForecast newForecast)
+        {
+            if (newForecast == null)
+            {
+                return BadRequest("Invalid forecast data.");
+            }
+
+            Forecasts.Add(newForecast);
+            return Ok(newForecast);
+        }
+
     }
 
     public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

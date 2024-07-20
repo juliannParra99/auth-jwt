@@ -14,6 +14,8 @@ builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfi
 builder.Services.AddDbContext<ApiDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(setup =>
@@ -75,6 +77,16 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = false
     };
 });
+
+//Spefify the policies;
+//if we just put "Department" as require claim the people with that claim will get access, but if we put "Department:WeatherAdmins"  just 
+//the people with that claim will get access
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("WeatherDataAdmins", policy => policy.RequireClaim("Department", "WeatherAdmins"));
+});
+
+
 
 var app = builder.Build();
 
