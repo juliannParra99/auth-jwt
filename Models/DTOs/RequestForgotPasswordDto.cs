@@ -1,0 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Drivers.Api.Models.DTOs
+{
+    public class RequestForgotPasswordDto
+    {
+        public string Email { get; set; } = string.Empty;
+        
+    }
+}

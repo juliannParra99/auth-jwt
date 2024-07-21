@@ -49,7 +49,8 @@ builder.Services.AddSwaggerGen(setup =>
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     options.SignIn.RequireConfirmedAccount = false)//IdentityBuilder
-    .AddEntityFrameworkStores<ApiDbContext>();
+    .AddEntityFrameworkStores<ApiDbContext>()
+    .AddDefaultTokenProviders(); //default providers to reset stuff
 
 //default authentication
 builder.Services.AddAuthentication(options =>

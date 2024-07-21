@@ -179,5 +179,73 @@ namespace Drivers.Api.Controllers
             return claims;
         }
 
+        // Endpoint for resetting a user's password. Validates user, generates a password reset token,and sends reset password email.
+        /// Handles a request to initiate the password reset process for a user.
+        /// An object containing the user's email address
+        /// An `Ok` response containing the generated password reset token and the user's email 
+        /// (for informational purposes) if the email is valid. Otherwise, returns a `BadRequest` 
+        [HttpPost]
+        [Route("ForgotPassword")]
+        public async Task<ActionResult> ForgotPassword([FromBody] RequestForgotPasswordDto request)
+        {
+            if (ModelState.IsValid)
+            {
+                //validate user
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email");
+                }
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest("Invalid token");
+                }
+                //for the frontend will indicate where the reset password must be (endpoint )
+                var callbackUrl = $"http://localhost:4200/resetpassword?code={token}&email={user.Email}";
+
+                //send email: 
+                //eminder for the future implementation of the email sending functionality in the password reset process.
+
+                return Ok(new
+                {
+                    token = token,
+                    email = user.Email,
+                });
+
+            }
+            return BadRequest("Invalid payload");
+        }
+
+        //endpoint wich take the token and email to reset the password: 
+        //takes a request with a token and email to reset the password. It validates the request payload, finds the user by email, 
+        //resets the password using the provided token
+        [HttpPost]
+        [Route("ResetPassword")]
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid Payload");
+            }
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                return BadRequest("Invalid email");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+
+            if (result.Succeeded)
+            {
+                return Ok("Password reset successfully");
+            }
+
+            return BadRequest("Failed to reset password");
+        }
+
     }
 }
