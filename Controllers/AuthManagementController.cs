@@ -61,17 +61,14 @@ namespace Drivers.Api.Controllers
                 ////return success respones if was succeded
                 if (isCreated.Succeeded)
                 {
-                    //we need to add the user to a role
-                    await _userManager.AddToRoleAsync(newUser, "appUser");
-                    //generate token
-                    var token = await GenerateJwtTokenAsync(newUser);
+                    //require email confirmation
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
 
-                    return Ok(new RegistrationRequestResponse()
-                    {
-                        Result = true,
-                        Token = token
+                    //email funtionalitie to send the code to the user
+                    //insted to send the code with the email,  we will send it directly for simplicity sake; the good stuff would be send it to their email
 
-                    });
+                    return Ok(new { message = $"Please confirm your email with the code that you have received {code}" });
+
                 }
 
                 return BadRequest(isCreated.Errors.Select(x => x.Description).ToList());
@@ -80,6 +77,36 @@ namespace Drivers.Api.Controllers
 
             return BadRequest("Invalid request payload");
         }
+
+        //endpoint to confirm the email.
+        [HttpPost]
+        [Route("EmailVerification")]
+        public async Task<IActionResult> EmailVerification(string? email, string? code)
+        {
+            if (email == null || code == null)
+            {
+                return BadRequest("Invalid payload");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return BadRequest("Invalid payload");
+            }
+
+            var isVerified = await _userManager.ConfirmEmailAsync(user, code);
+            if (isVerified.Succeeded)
+            {
+                return Ok(new
+                {
+                    message = "Email Confirmed"
+                });
+            }
+            return BadRequest("Something went wrong");
+
+        }
+
 
         [HttpPost]
         [Route("Login")]
@@ -92,6 +119,20 @@ namespace Drivers.Api.Controllers
                 if (existingUser == null)
                 {
                     return BadRequest("Invalid authentication");
+                }
+
+                var checkConfirmed = await _userManager.IsEmailConfirmedAsync(existingUser);
+
+                if (!checkConfirmed)
+                {
+                    return Unauthorized(new AuthResult()
+                    {
+                        Errors = new List<string>()
+                        {
+                            "Email not confirmed"
+                        },
+                        Result = false
+                    });
                 }
 
                 var isPasswordValid = await _userManager.CheckPasswordAsync(existingUser, requestDto.Password);
